@@ -21,6 +21,9 @@ Thank you for your interest in contributing to **MindDump**! We welcome contribu
 ## 💡 Project Inspiration
 
 The core idea behind MindDump—writing down what's happening in your life as a practice—was inspired by **Conor Neill's TEDx talk** ["The Discipline of Finishing"](https://www.youtube.com/watch?v=zXCiv4sc5eY) at TEDxUniversidaddeNavarra.
+<img width="1002" height="235" alt="image" src="https://github.com/user-attachments/assets/bdf12711-b2d1-4ff0-b348-bcb354ba26fc" />
+
+
 
 In his talk, Conor emphasizes the importance of capturing daily experiences, interactions, and thoughts as a way to reflect, learn, and grow. MindDump was created to provide a simple, distraction-free tool for this powerful practice.
 

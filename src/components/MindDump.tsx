@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { BookOpen, PenLine, Trash2 } from "lucide-react";
+import { BookOpen, PenLine, Trash2, Activity } from "lucide-react";
+import { auditLog } from "@/lib/audit-logger";
+import { useRouter } from "next/navigation";
 
 interface Entry {
   id: string;
@@ -16,6 +18,7 @@ export default function MindDump() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   // Load entries from localStorage on mount
   useEffect(() => {
@@ -34,6 +37,13 @@ export default function MindDump() {
     if (draft) {
       setCurrentContent(draft);
     }
+
+    // Log app loaded
+    auditLog.appLoaded({
+      version: "1.0.0",
+      entriesCount: entries.length,
+      hasDraft: !!draft,
+    });
   }, []);
 
   // Auto-save draft to localStorage (debounced)
@@ -44,6 +54,14 @@ export default function MindDump() {
 
     const timeout = setTimeout(() => {
       localStorage.setItem("mindDumpDraft", currentContent);
+      
+      // Log draft auto-save
+      if (currentContent.trim()) {
+        auditLog.draftAutoSaved("draft_current", {
+          wordCount: currentContent.trim().split(/\s+/).length,
+          characterCount: currentContent.length,
+        });
+      }
     }, 500);
 
     setAutoSaveTimeout(timeout);
@@ -67,19 +85,56 @@ export default function MindDump() {
     localStorage.setItem("mindDumpEntries", JSON.stringify(updatedEntries));
     setCurrentContent("");
     localStorage.setItem("mindDumpDraft", "");
+
+    // Log entry created
+    auditLog.entryCreated(newEntry.id, {
+      wordCount: currentContent.trim().split(/\s+/).length,
+      characterCount: currentContent.length,
+      timestamp: newEntry.timestamp,
+    });
   }, [currentContent, entries]);
 
   const deleteEntry = useCallback(
     (id: string) => {
+      const entryToDelete = entries.find((entry) => entry.id === id);
       const updatedEntries = entries.filter((entry) => entry.id !== id);
       setEntries(updatedEntries);
       localStorage.setItem("mindDumpEntries", JSON.stringify(updatedEntries));
       if (selectedEntry?.id === id) {
         setSelectedEntry(null);
       }
+
+      // Log entry deleted
+      if (entryToDelete) {
+        auditLog.entryDeleted(id, {
+          wordCount: entryToDelete.content.trim().split(/\s+/).length,
+          timestamp: entryToDelete.timestamp,
+        });
+      }
     },
     [entries, selectedEntry]
   );
+
+  const handleModeSwitch = useCallback((newMode: "write" | "view") => {
+    setMode(newMode);
+    setSelectedEntry(null);
+
+    // Log mode switch
+    auditLog.modeSwitched({
+      from: mode,
+      to: newMode,
+    });
+  }, [mode]);
+
+  const handleEntryView = useCallback((entry: Entry) => {
+    setSelectedEntry(entry);
+
+    // Log entry viewed
+    auditLog.entryViewed(entry.id, {
+      wordCount: entry.content.trim().split(/\s+/).length,
+      timestamp: entry.timestamp,
+    });
+  }, []);
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -120,10 +175,7 @@ export default function MindDump() {
             <Button
               variant={mode === "write" ? "default" : "ghost"}
               size="sm"
-              onClick={() => {
-                setMode("write");
-                setSelectedEntry(null);
-              }}
+              onClick={() => handleModeSwitch("write")}
               className="gap-2"
             >
               <PenLine className="w-4 h-4" />
@@ -132,11 +184,20 @@ export default function MindDump() {
             <Button
               variant={mode === "view" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setMode("view")}
+              onClick={() => handleModeSwitch("view")}
               className="gap-2"
             >
               <BookOpen className="w-4 h-4" />
               Entries ({entries.length})
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/audit-logs")}
+              className="gap-2"
+              title="View Audit Logs"
+            >
+              <Activity className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -212,7 +273,7 @@ export default function MindDump() {
                 {entries.map((entry) => (
                   <div
                     key={entry.id}
-                    onClick={() => setSelectedEntry(entry)}
+                    onClick={() => handleEntryView(entry)}
                     className="bg-white dark:bg-[#0f0e0d] border border-[#e8e5e1] dark:border-[#2d2a26] rounded-lg p-5 cursor-pointer hover:border-[#8b7355] dark:hover:border-[#a89179] transition-all hover:shadow-md"
                   >
                     <p className="text-sm text-[#a89179] dark:text-[#5a564f] mb-2">

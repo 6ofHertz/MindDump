@@ -43,6 +43,14 @@ A distraction-free, minimalist writing space designed for capturing life's momen
 - Delete entries you no longer need
 - Entry count displayed in navigation
 
+### 📊 **Comprehensive Audit Logging**
+- Track all activities and system events
+- View statistics and analytics dashboard
+- Filter logs by action type and date
+- Export and analyze usage patterns
+- See detailed breakdowns of all actions
+- **Access via Activity icon (📊) in header**
+
 ### 🎨 **Elegant Design**
 - Warm, cream/beige color palette for a calming experience
 - Sophisticated typography mixing Crimson Pro (serif) and Inter (sans-serif)
@@ -52,7 +60,8 @@ A distraction-free, minimalist writing space designed for capturing life's momen
 
 ### 🔒 **Privacy First**
 - All data stored locally in your browser (localStorage)
-- No backend, no servers, no cloud sync
+- Audit logs stored in secure database (Turso)
+- No personal information logged (only metadata)
 - Your thoughts stay on your device
 - Works completely offline
 
@@ -98,22 +107,34 @@ minddump/
 ├── public/               # Static assets
 ├── src/
 │   ├── app/
-│   │   ├── globals.css   # Global styles with Tailwind CSS v4
-│   │   ├── layout.tsx    # Root layout with metadata
-│   │   ├── page.tsx      # Home page (renders MindDump component)
-│   │   └── favicon.ico   # App icon
+│   │   ├── api/
+│   │   │   └── audit-logs/  # Audit log API routes
+│   │   ├── audit-logs/      # Audit log viewer page
+│   │   ├── globals.css      # Global styles with Tailwind CSS v4
+│   │   ├── layout.tsx       # Root layout with metadata
+│   │   ├── page.tsx         # Home page (renders MindDump component)
+│   │   └── favicon.ico      # App icon
 │   ├── components/
 │   │   ├── MindDump.tsx  # Main application component
-│   │   ├── ui/           # shadcn/ui components (Button, etc.)
+│   │   ├── ui/           # shadcn/ui components (Button, Card, etc.)
 │   │   └── ErrorReporter.tsx
+│   ├── db/
+│   │   ├── index.ts      # Database connection
+│   │   ├── schema.ts     # Database schema (audit logs)
+│   │   └── seeds/        # Database seeders
 │   ├── hooks/            # Custom React hooks
-│   ├── lib/              # Utility functions
+│   ├── lib/
+│   │   ├── audit-logger.ts  # Audit logging utility
+│   │   └── utils.ts         # Utility functions
 │   └── visual-edits/     # Visual editing utilities
+├── .env                  # Environment variables (Turso DB)
 ├── .gitignore
+├── AUDIT_LOG_DOCUMENTATION.md  # Detailed audit log docs
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
+├── VERCEL_DEPLOYMENT.md
 ├── package.json
 ├── tsconfig.json
 └── next.config.ts
@@ -129,6 +150,8 @@ minddump/
 - **[Tailwind CSS 4](https://tailwindcss.com/)** — Utility-first CSS framework
 - **[shadcn/ui](https://ui.shadcn.com/)** — Re-usable component library
 - **[Lucide React](https://lucide.dev/)** — Icon library
+- **[Turso](https://turso.tech/)** — Serverless SQLite database for audit logs
+- **[Drizzle ORM](https://orm.drizzle.team/)** — TypeScript ORM
 - **[Google Fonts](https://fonts.google.com/)** — Crimson Pro & Inter typography
 - **localStorage API** — Client-side data persistence
 
@@ -210,6 +233,13 @@ For detailed deployment instructions, see **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOY
 3. **Click any entry** to read the full content
 4. **Click the trash icon** to delete entries you no longer need
 
+### Viewing Audit Logs
+
+1. **Click the Activity icon (📊)** in the header
+2. View comprehensive statistics and analytics
+3. Filter logs by action type (entry created, updated, deleted, etc.)
+4. See detailed breakdown of all activities
+
 ### Clearing Your Draft
 
 - Click **"Clear"** button to empty the current draft
@@ -236,23 +266,61 @@ MindDump uses a **debounced auto-save mechanism**:
 
 ---
 
+## 📊 Audit Log System
+
+MindDump includes a comprehensive audit logging system that tracks all activities:
+
+### What Gets Tracked
+
+- **Entry Actions:** Created, updated, deleted, viewed
+- **Draft Actions:** Auto-saved drafts
+- **System Events:** App loaded, mode switched
+- **Metadata:** Word counts, character counts, timestamps
+
+### Audit Log Features
+
+- **Real-time tracking** of all user actions
+- **Statistics dashboard** with key metrics
+- **Action breakdown** with visual indicators
+- **Advanced filtering** by action type and date
+- **Recent activity feed** with detailed information
+
+### Accessing Audit Logs
+
+- Click the **Activity icon (📊)** in the header
+- Navigate to `/audit-logs` route
+- View comprehensive statistics and filter options
+
+For detailed documentation, see **[AUDIT_LOG_DOCUMENTATION.md](AUDIT_LOG_DOCUMENTATION.md)**.
+
+---
+
 ## 🔐 Privacy & Data Storage
 
-### Local-Only Storage
+### Local-Only Storage (Entries)
 
-- **100% client-side** — No backend server or database
-- **No analytics** — No tracking or telemetry
-- **No cloud sync** — Your data never leaves your device
+- **100% client-side** — Entry content stored in localStorage
+- **No analytics** — No tracking of entry content
+- **No cloud sync** — Your entries never leave your device
 - **Browser localStorage** — Data persists across sessions
+
+### Database Storage (Audit Logs)
+
+- **Turso Database** — Serverless SQLite for audit logs
+- **Metadata only** — Only tracks actions, not content
+- **No personal information** — No PII logged
+- **Secure connection** — Encrypted database connection
 
 ### Data Locations
 
-All data is stored in your browser's localStorage:
+Entry data is stored in your browser's localStorage:
 
 ```javascript
 localStorage.mindDumpDraft     // Current unsaved draft
 localStorage.mindDumpEntries   // Array of saved entries
 ```
+
+Audit logs are stored in Turso database (see AUDIT_LOG_DOCUMENTATION.md)
 
 ### Data Portability
 
@@ -265,7 +333,8 @@ Your data is stored as JSON in localStorage. To export:
 
 ### Privacy Considerations
 
-- Data is **not encrypted** in localStorage
+- Entry content is **not encrypted** in localStorage
+- Audit logs contain **metadata only** (no entry content)
 - Clearing browser data will **delete all entries**
 - Shared devices: Others with access can read your entries
 - **Recommendation:** Use browser profiles or private/incognito mode on shared devices
@@ -278,6 +347,7 @@ Future features being considered (not yet implemented):
 
 - [ ] **Export to Markdown** — Download entries as `.md` files
 - [ ] **Export to JSON** — Backup all data
+- [ ] **Export Audit Logs** — Download audit logs as CSV/JSON
 - [ ] **Search & Filter** — Find entries by keyword or date range
 - [ ] **Tagging System** (optional) — Add lightweight tags without losing simplicity
 - [ ] **Encryption** — Optional password protection for entries
@@ -286,6 +356,7 @@ Future features being considered (not yet implemented):
 - [ ] **Import Data** — Restore from JSON backup
 - [ ] **PWA Support** — Install as standalone desktop/mobile app
 - [ ] **Keyboard Shortcuts** — Quick navigation (e.g., Cmd+S to save)
+- [ ] **Advanced Analytics** — Usage trends and patterns
 
 **Note:** These features are ideas only. MindDump is designed to stay minimal and distraction-free.
 

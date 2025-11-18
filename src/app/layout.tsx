@@ -7,6 +7,11 @@ import Script from "next/script";
 export const metadata: Metadata = {
   title: "MindDump - Your Personal Memory Vault",
   description: "A distraction-free writing space for capturing your thoughts",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+  },
 };
 
 export default function RootLayout({

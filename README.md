@@ -185,6 +185,14 @@ npm run build
 npm run start
 ```
 
+### Deploy to Vercel
+
+**Quick Deploy:**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/minddump)
+
+For detailed deployment instructions, see **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)**.
+
 ---
 
 ## 📝 Usage Instructions

@@ -337,6 +337,9 @@ If you want to extend MindDump, these resources will help:
 
 **Easiest deployment for Next.js:**
 
+For complete step-by-step instructions, see **[VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)**.
+
+**Quick Start:**
 1. Push to GitHub (follow steps above)
 2. Go to https://vercel.com/new
 3. Import your GitHub repository
@@ -370,6 +373,8 @@ Build and serve on any Node.js hosting:
 npm run build
 npm run start
 ```
+
+**📖 For detailed Vercel deployment guide with troubleshooting, custom domains, and performance optimization, see [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).**
 
 ---
 

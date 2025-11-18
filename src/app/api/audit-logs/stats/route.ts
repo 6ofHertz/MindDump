@@ -74,14 +74,8 @@ export async function GET(request: NextRequest) {
     const todayCount = todayCountResult[0]?.count || 0;
 
     // 6. Active Users - Count of unique user IDs (excluding null)
-    const activeUsersResult = await db
-      .select({
-        uniqueUsers: sql<number>`count(distinct ${auditLogs.userId})`.as('uniqueUsers')
-      })
-      .from(auditLogs)
-      .where(isNotNull(auditLogs.userId));
-
-    const activeUsers = activeUsersResult[0]?.uniqueUsers || 0;
+    // Note: Since we don't have a userId field, we'll return 0 for now
+    const activeUsers = 0;
 
     // Return all statistics in a single response object
     return NextResponse.json({

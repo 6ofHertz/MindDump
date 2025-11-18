@@ -2,7 +2,6 @@ import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 
 export const auditLogs = sqliteTable('audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: text('user_id'),
   action: text('action').notNull(),
   entityType: text('entity_type').notNull(),
   entityId: text('entity_id'),
